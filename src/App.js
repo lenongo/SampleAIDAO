@@ -248,8 +248,12 @@ function App() {
 
   //WLの認識
   const getWL = () => {
-    console.log(response?.some((e) => e.id == blockchain.account));
-    setIsWL(response?.some((e) => e.id == blockchain.account));
+    if (blockchain != null) {
+      console.log(
+        response?.some((e) => e.id.toLowerCase() == blockchain.account)
+      );
+      setIsWL(response?.some((e) => e.id.toLowerCase() == blockchain.account));
+    }
   };
 
   useEffect(() => {
