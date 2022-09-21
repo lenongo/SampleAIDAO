@@ -4,6 +4,12 @@ import { connect } from "./redux/blockchain/blockchainActions";
 import { fetchData } from "./redux/data/dataActions";
 import * as s from "./styles/globalStyles";
 import styled from "styled-components";
+import axios from "axios";
+const params = {
+  //任意のパラメータ
+  crossDomain: true,
+  followRedirects: true,
+};
 
 const truncate = (input, len) =>
   input.length > len ? `${input.substring(0, len)}...` : input;
@@ -102,6 +108,7 @@ function App() {
   const [feedback, setFeedback] = useState(`Click buy to mint your NFT.`);
   const [mintAmount, setMintAmount] = useState(1);
   const [isWL, setIsWL] = useState(false);
+  const [response, setResponse] = useState();
   const [CONFIG, SET_CONFIG] = useState({
     CONTRACT_ADDRESS: "",
     SCAN_LINK: "",
@@ -230,16 +237,25 @@ function App() {
     SET_CONFIG(config);
   };
 
+  //WLの取得
+  const getWLWallet = async () => {
+    const response = await axios.get(
+      "https://script.google.com/macros/s/AKfycbzIWba1214Uox4QDfXzhbXoYWZGZBf_8m1AwtKZ3EWopgWrHEhy4wObLdEq0_-nCgszcQ/exec",
+      { params }
+    );
+    console.log(response.data);
+    setResponse(response.data);
+  };
+
   //WLの認識
   const getWL = () => {
-    if (blockchain.account === 0x2ad2d903fc5f0f28baa62ad5a377c05a2c07bab9) {
-      setIsWL(true);
-    }
-    console.log(isWL);
+    console.log(response?.some((e) => e.id == blockchain.account));
+    setIsWL(response?.some((e) => e.id == blockchain.account));
   };
 
   useEffect(() => {
     getConfig();
+    getWLWallet();
   }, []);
 
   useEffect(() => {
@@ -342,15 +358,23 @@ function App() {
                       Connect to the {CONFIG.NETWORK.NAME} network
                     </s.TextDescription>
                     <s.SpacerSmall />
-                    <StyledButton
-                      onClick={(e) => {
-                        e.preventDefault();
-                        dispatch(connect());
-                        getData();
-                      }}
-                    >
-                      CONNECT
-                    </StyledButton>
+                    {response == null ? (
+                      <>
+                        <StyledButton>PleaseWait</StyledButton>
+                      </>
+                    ) : (
+                      <>
+                        <StyledButton
+                          onClick={(e) => {
+                            e.preventDefault();
+                            dispatch(connect());
+                            getData();
+                          }}
+                        >
+                          CONNECT
+                        </StyledButton>
+                      </>
+                    )}
                     {blockchain.errorMsg !== "" ? (
                       <>
                         <s.SpacerSmall />
